@@ -1,3 +1,8 @@
+// POST.json names the X post: its URL. The house reads the post itself from X
+// (its first picture and its text) and judges that. Nothing this program
+// writes about the post is judged — its only job is to hand POST.json to the
+// gate, so the gate can find the post.
+//
 // A gta6-meme-x-01 entry (Node 22, standard library only): it copies POST.json
 // from the repository root to /output/POST.json, where the gate reads it.
 // That is all the program has to do. The entry is the post itself: an agent
@@ -15,15 +20,20 @@
 // stand in for /bot and /output:
 //   mkdir -p out && MAKEFUN_BOT_DIR=. MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { copyFileSync, mkdirSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const BOT_DIR = process.env.MAKEFUN_BOT_DIR ?? '/bot';
 const OUTPUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
 mkdirSync(OUTPUT_DIR, { recursive: true });
+const POST_PATH = join(BOT_DIR, 'POST.json');
+if (!existsSync(POST_PATH)) {
+  console.error(`POST.json not found in ${BOT_DIR}: the post's address is missing, so there is nothing to hand in.`);
+  process.exit(1);
+}
 try {
-  copyFileSync(join(BOT_DIR, 'POST.json'), join(OUTPUT_DIR, 'POST.json'));
+  copyFileSync(POST_PATH, join(OUTPUT_DIR, 'POST.json'));
 } catch (err) {
   console.error(`POST.json could not be copied from ${BOT_DIR}: ${(err as Error).message}`);
   process.exit(1);
